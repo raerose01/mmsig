@@ -20,6 +20,7 @@ fit_signatures = function(samples.muts,
     colnames(sigt.fraction) <- samples
     
     for (j in 1:length(samples)) {
+        spit(dbg, "sample number: %d", j)
         sample.mut.freqs = as.numeric(samples.muts[,j])
         sample.mut.freqs[is.na(sample.mut.freqs)] = 0
         sample.sigts <- unique(sigt.profs[[ samples[j] ]])
@@ -47,15 +48,24 @@ fit_signatures = function(samples.muts,
         while (reducing) { 
             spat(dbg, "in the while, rem.alpha: ", rem.alpha)
             cosReduction <- NULL
-            rem.names <- setdiff(names(rem.alpha),c("SBS1","SBS5"))
-            if(length(rem.names) == 0){ ## Avoiding script crash when only SBS1 and 5 are present.
-                spit(dbg, "removed all signatures except SBS1 and SBS5: exiting while...")
-                break
+            if(any(grepl(pattern = "SBS", names(rem.alpha)))){
+                rem.names <- setdiff(names(rem.alpha),c("SBS1","SBS5"))
+                if(length(rem.names) == 0){ ## Avoiding script crash when only SBS1 and 5 are present.
+                    spit(dbg, "removed all signatures except SBS1 and SBS5: exiting while...")
+                    break
                 }
+            }
+            if(any(grepl(pattern = "Signature.", names(rem.alpha)))){
+                rem.names <- setdiff(names(rem.alpha),c("Signature.1","Signature.5"))
+                if(length(rem.names) == 0){ ## Avoiding script crash when only SBS1 and 5 are present.
+                    spit(dbg, "removed all signatures except Signature.1 and Signature.5: exiting while...")
+                    break
+                }
+            }
             
             for(c in rem.names){
                 spit(dbg, "doing c: %s", c)
-                red.sample.consigts.defn <- rem.sample.consigts.defn[,colnames(rem.sample.consigts.defn)!=c]
+                red.sample.consigts.defn <- rem.sample.consigts.defn[,colnames(rem.sample.consigts.defn)!=c,drop=FALSE]
                 red.alpha <- em_signatures(sigts.defn=red.sample.consigts.defn,mut.freqs=sample.mut.freqs,max.iter=max.em.iter,dbg=dbg)
                 red.reconstructed <- red.sample.consigts.defn %*% red.alpha * sum(sample.mut.freqs)
                 red.cos.sim.meas <- cos_sim_matrix(red.reconstructed, matrix(sample.mut.freqs, ncol=1))
@@ -64,7 +74,7 @@ fit_signatures = function(samples.muts,
             names(cosReduction) <- rem.names
             if (min(cosReduction) < cos_sim_threshold) {
                 spit(dbg, "removing: %s", names(cosReduction)[which.min(cosReduction)])
-                rem.sample.consigts.defn <- rem.sample.consigts.defn[,- which(colnames(rem.sample.consigts.defn)==names(which.min(cosReduction)))]
+                rem.sample.consigts.defn <- rem.sample.consigts.defn[,- which(colnames(rem.sample.consigts.defn)==names(which.min(cosReduction))),drop=FALSE]
                 rem.alpha <-  em_signatures(sigts.defn=rem.sample.consigts.defn,mut.freqs=sample.mut.freqs,max.iter=max.em.iter,dbg=dbg)
                 reducing = TRUE
                 } 

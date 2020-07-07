@@ -38,6 +38,7 @@ oppstrand = function(x) {   # comp() complements dna sequences
 # EM algorithm to estimate the signature contribution
 em_signatures = function(sigts.defn,mut.freqs,max.iter,dbg) {
     nof.sigts.defn <- ncol(sigts.defn)
+    spit(dbg, "nof.sigts.defn: %d", nof.sigts.defn)
     alpha = runif(nof.sigts.defn); alpha=alpha/sum(alpha) # Random start (seems to give ~identical results)
     for (i in 1:max.iter) {
         contr = t(array(alpha, dim=c(nof.sigts.defn,96))) * sigts.defn

@@ -15,14 +15,19 @@ rotatedAxisElementText = function(angle,position='x'){
 }
 
 scale_fill_sigs <- function(...){
+  #ggplot2:::manual_scale('fill', 
+  #                       values = setNames(c(RColorBrewer::brewer.pal(8, "Dark2"), "lightblue", "#FB8072"),
+  #                                         c("SBS1", "SBS2", "SBS5", "SBS8", "SBS9", "SBS13", "SBS18", "SBS-MM1", "SBS35", "SBS84")), 
+  #                       ...)
+  
   ggplot2:::manual_scale('fill', 
-                         values = setNames(c(RColorBrewer::brewer.pal(8, "Dark2"), "lightblue", "#FB8072"),
-                                           c("SBS1", "SBS2", "SBS5", "SBS8", "SBS9", "SBS13", "SBS18", "SBS-MM1", "SBS35", "SBS84")), 
+                         values = setNames(c('#a6cee3','#1f78b4','#b2df8a','#33a02c','#fb9a99','#e31a1c','#fdbf6f','#ff7f00','#cab2d6','#6a3d9a','#ffff99','#b15928'),
+                                           c("Signature.1", "Signature.2", "Signature.4", "Signature.5", "Signature.6", "Signature.7", "Signature.13", "Signature.8", "Signature.10", "Signature.30", "Signature.11", "Signature.9")), 
                          ...)
 }
 
 plot_signatures = function(sig,
-                           sig_order = c("SBS1", "SBS2", "SBS13", "SBS5", "SBS8", "SBS9", "SBS18", "SBS-MM1", "SBS35"),
+                           sig_order = c("Signature.1","Signature.2","Signature.4","Signature.5","Signature.13"),
                            samples = FALSE){
   "
   Plotting function for mmSig package
@@ -32,9 +37,9 @@ plot_signatures = function(sig,
   sigPlot <- sig %>%
       rownames_to_column(var = "sample") %>%
       dplyr::select(-mutations) %>%
-      melt(id.var = "sample", variable.name = "SBS", value.name = "prop") %>%
-      mutate(SBS = factor(SBS, levels = sig_order)) %>%
-      ggplot(aes(sample, prop, fill = SBS)) +
+      melt(id.var = "sample", variable.name = "Signature", value.name = "prop") %>%
+      mutate(Signature = factor(Signature, levels = sig_order)) %>%
+      ggplot(aes(sample, prop, fill = Signature)) +
       geom_col(width=1)+
       scale_fill_sigs()+
       scale_y_continuous(expand = c(0,0))+
