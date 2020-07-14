@@ -20,6 +20,7 @@ bootstrap_fit_signatures <- function(samples.muts,
     
     # List to populate with signatures
     mutSigs <- list()
+    mutProbs <- list()
     
     # Setup progress bar
     pbar <- create_progress_bar('text')
@@ -47,12 +48,13 @@ bootstrap_fit_signatures <- function(samples.muts,
                                   cos_sim_threshold=cos_sim_threshold,
                                   dbg=FALSE)
         
-        mutSigs[[i]] <- sig_out
+        mutSigs[[i]] <- sig_out[[1]]
+        mutProbs[[i]] <- sig_out[[2]]
         pbar$step()
     }
     
-    names(mutSigs) <- samples
-    
+    names(mutSigs) <-  names(mutProbs) <- samples
+
     # Generate final summary data frame
     
     ## Summary statistics
@@ -74,5 +76,29 @@ bootstrap_fit_signatures <- function(samples.muts,
     
     mutSigsSummary <- bind_rows(mutSigsSummary)
     
-    return(mutSigsSummary)
+    
+    mutProbsSummary <- list()
+    for(i in 1:length(mutProbs)){
+        s <- names(mutProbs)[i]
+        temp <- mutProbs[[i]]
+        boop <- lapply(unique(temp$MutationTypes), FUN = function(x){
+            tmp <- temp[which(temp$MutationTypes == x),]
+            out <- data.frame(t(sapply(tmp[!names(tmp) %in% c("Sample.Names", "MutationTypes")], my_summary)))
+            names(out) <- c('mean', 'CI025', 'CI975')
+            out$sample <- s
+            out$MutationTypes <- x
+            out$signature <- rownames(out)
+            return(out)
+        })
+        #out <- out[c('sample', 'signature', 'mean', 'CI025', 'CI975')]
+        out <- do.call(rbind, boop)
+        rownames(out) <- NULL
+        mutProbsSummary[[i]] <- out
+    }
+    
+    names(mutProbsSummary) <- names(mutProbs)
+    
+    final_out <- list(mutSigsSummary, mutProbsSummary)
+    names(final_out) <- c("mutSigsSummary", "mutProbsSummary")
+    return(final_out)
 }

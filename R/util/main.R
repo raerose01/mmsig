@@ -1,9 +1,9 @@
 packages <- c("seqinr", "plyr", "tidyverse", "reshape2", "RColorBrewer", "BSgenome", "TxDb.Hsapiens.UCSC.hg19.knownGene", 
               "BSgenome.Hsapiens.UCSC.hg19", "MutationalPatterns", "deconstructSigs")
 
-ref_genome <- "BSgenome.Hsapiens.UCSC.hg19"
-
 invisible(suppressWarnings(suppressMessages(lapply(packages, library, character.only = TRUE))))
+
+rm(packages)
 
 options(scipen = 999)
 
@@ -115,7 +115,8 @@ mm_fit_signatures = function(muts.input,
                              cos_sim_threshold=cos_sim_threshold,
                              dbg=dbg)
     
-    output$estimate <- sigfit
+    output$estimate <- sigfit[[1]]
+    output$mutation_probability <- sigfit[[2]]
     
     #####################################################     
     ########             Bootstrapping           ########
@@ -124,7 +125,7 @@ mm_fit_signatures = function(muts.input,
     if(bootstrap){
         
         # Point estimates
-        sig_est <- sigfit
+        sig_est <- sigfit$weights
         sig_est$sample <- row.names(sig_est)
         sig_est <- melt(sig_est[names(sig_est) != "mutations"], 
                         id.vars = "sample", 
@@ -139,9 +140,10 @@ mm_fit_signatures = function(muts.input,
                                             iterations = iterations,
                                             cos_sim_threshold = cos_sim_threshold)
         
-        sigboot <- left_join(sigboot, sig_est, by = c("sample", "signature"))
+        sigboot_one <- left_join(sigboot[[1]], sig_est, by = c("sample", "signature"))
         
-        output$bootstrap <- sigboot
+        output$bootstrap <- sigboot_one
+        output$bootstrap_mutation_probability <- sigboot[[2]]
     }
     
     #####################################################     

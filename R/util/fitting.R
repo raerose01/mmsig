@@ -1,5 +1,84 @@
 ## Signature fitting function for mmsig
 
+#' @title convert_signature_definitions_mmsig
+#'
+#' @description
+#' Re-format signature matrix in the mmsig format.
+#'
+#' @param sig_df String to split [data frame]
+#'
+#' @return mmsig formatted signatures data frame [data frame]
+#'
+#' @export
+convert_signature_definitions_mmsig <- function(sig_df, reverse = FALSE){
+    if (any(grepl(pattern = ">", x = colnames(sig_df)))) {
+        sig_df <- data.frame(t(sig_df))
+    }
+    if (!reverse) {
+        sig_df$Substitution.Type <- substr(rownames(sig_df), 3,5)
+        sig_df$Trinucleotide <- gsub(pattern = "[^A-Z]", replacement = "", x = gsub(pattern = ">[A-Z]", replacement = "", x = rownames(sig_df)))
+        sig_df_out <- sig_df %>% dplyr::select(Substitution.Type, Trinucleotide, everything())
+    }
+    
+    if (reverse) {
+        sig_df_out <- sig_df
+        rownames(sig_df) <- paste0(substr(rownames(sig_df), 1, 1),
+                                   "[",
+                                   substr(rownames(sig_df), 2, 2),
+                                   ">",
+                                   substr(rownames(sig_df), 6, 6),
+                                   "]",
+                                   substr(rownames(sig_df), 3, 3))   
+        sig_df_out <- sig_df
+    }
+
+    return(sig_df_out)
+}
+
+#' @title calculate_mutation_probabilities
+#'
+#' @description Calculates probability of a signature resulting in a specific mutation type
+#'
+#' @details Given a signatures data frame and a weights data frame, calculates the probability of each
+#' signature generating each trinucleotide context in the sample.
+#'
+#' @param signatures_df trincucleotide contexts as rows and signatures as columns [data frame]
+#' @param exposures_df samples as rows and signatures as columns [data frame]
+#' @return mmsig output [data frame]
+#' @export
+calculate_mutation_probabilities <- function(signatures_df, exposures_df){
+    
+    if (any(grepl(pattern = ">", x = colnames(signatures_df)))) {
+        signatures_df <- data.frame(t(signatures_df))
+    }
+    
+    if (any(grepl(pattern = "SBS|Signature", x = colnames(exposures_df)))) {
+        exposures_df <- t(exposures_df)
+    }
+    
+    signatures_used <- as.matrix(signatures_df[,intersect(rownames(exposures_df), 
+                                                          colnames(signatures_df))])
+    exposures_df <- exposures_df[intersect(rownames(exposures_df), 
+                                           colnames(signatures_df)),]
+    
+    # this will approximate the mutation matrix I input for each sample
+    genomes <- signatures_used %*% exposures_df
+    
+    boop <- lapply(1:ncol(exposures_df), FUN = function(i){
+        M <- genomes[,i,drop = TRUE]
+        tmp_probs <- sweep(signatures_used, 2, exposures_df[,i], "*")
+        probs <- data.frame(tmp_probs/M)
+        probs$Sample.Names <- colnames(exposures_df)[i]
+        probs$MutationTypes <- rownames(probs)
+        return(probs)
+    })
+    
+    result <- do.call(rbind, boop)
+    result <- result %>% dplyr::select(Sample.Names, MutationTypes, everything())
+    return(result)
+    
+}
+
 fit_signatures = function(samples.muts,
                           consigts.defn,
                           sigt.profs, 
@@ -100,9 +179,17 @@ fit_signatures = function(samples.muts,
     tdf.sigt.fraction <- as.data.frame(t(sigt.fraction))
     colsums.samples.muts <- colSums(samples.muts)
     sig <- cbind(tdf.sigt.fraction, "mutations"=colsums.samples.muts)
-    colnames(sig)[colnames(sig)=="SBS.MM1"]<-"SBS-MM1"
+
     
-    return(sig)
+    consigts.defn.tweaked <- convert_signature_definitions_mmsig(consigts.defn, reverse = TRUE)
+    mut_prob <- calculate_mutation_probabilities(signatures_df = consigts.defn.tweaked, exposures_df = tdf.sigt.fraction)
+    #mut_prob <- calculate_mutation_probabilities(signatures_df = consigts.defn, exposures_df = tdf.sigt.fraction)
+    
+    out <- list(sig, mut_prob)
+    names(out) <- c("weights", "mutation_probability")
+    
+    return(out)
 }
+
 
 
