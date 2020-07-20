@@ -139,7 +139,7 @@ mm_fit_signatures = function(muts.input,
                                             iterations = iterations,
                                             cos_sim_threshold = cos_sim_threshold)
         
-        sigboot_one <- left_join(sigboot[[1]], sig_est, by = c("sample", "signature"))
+        sigboot_one <- dplyr::left_join(sigboot[[1]], sig_est, by = c("sample", "signature"))
         
         output$bootstrap <- sigboot_one
         output$bootstrap_mutation_probability <- sigboot[[2]]
