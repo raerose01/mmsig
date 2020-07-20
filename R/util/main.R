@@ -1,9 +1,8 @@
-packages <- c("seqinr", "plyr", "tidyverse", "reshape2", "RColorBrewer", "BSgenome", "TxDb.Hsapiens.UCSC.hg19.knownGene", 
-              "BSgenome.Hsapiens.UCSC.hg19", "MutationalPatterns", "deconstructSigs")
+#packages <- c("seqinr", "plyr", "tidyverse", "reshape2", "RColorBrewer", "MutationalPatterns")
 
-invisible(suppressWarnings(suppressMessages(lapply(packages, library, character.only = TRUE))))
+#invisible(suppressWarnings(suppressMessages(lapply(packages, library, character.only = TRUE))))
 
-rm(packages)
+#rm(packages)
 
 options(scipen = 999)
 
