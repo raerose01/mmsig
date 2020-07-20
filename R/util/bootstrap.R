@@ -27,7 +27,6 @@ bootstrap_fit_signatures <- function(samples.muts,
     pbar$init(length(samples))
     
     for(i in 1:length(samples)){
-        print(i)
         # Loop through samples, generating a data frame of signature contributions for each
         sub <- as.integer(samples.muts[classes,i])
         total <- sum(sub)
@@ -75,7 +74,7 @@ bootstrap_fit_signatures <- function(samples.muts,
         mutSigsSummary[[i]] <- out
     }
     
-    mutSigsSummary <- bind_rows(mutSigsSummary)
+    mutSigsSummary <- dplyr::bind_rows(mutSigsSummary)
     
     
     mutProbsSummary <- list()
