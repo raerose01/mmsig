@@ -23,7 +23,7 @@ bootstrap_fit_signatures <- function(samples.muts,
     mutProbs <- list()
     
     # Setup progress bar
-    pbar <- create_progress_bar('text')
+    pbar <- plyr::create_progress_bar('text')
     pbar$init(length(samples))
     
     for(i in 1:length(samples)){
