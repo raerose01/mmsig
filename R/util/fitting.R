@@ -115,7 +115,7 @@ fit_signatures = function(samples.muts,
         
         spat(dbg, "colnames: sample.consigts.defn (after em (and reduction))", colnames(sample.consigts.defn))
         reconstructed <- sample.consigts.defn %*% alpha * sum(sample.mut.freqs) 
-        sample.cos.sim.meas <- cos_sim_matrix(reconstructed, matrix(sample.mut.freqs, ncol=1))
+        sample.cos.sim.meas <- MutationalPatterns::cos_sim_matrix(reconstructed, matrix(sample.mut.freqs, ncol=1))
         spat(dbg, "sample.cos.sim.meas", sample.cos.sim.meas)
         
         rem.alpha <- sampleAlpha                     # holds the final result
@@ -147,7 +147,7 @@ fit_signatures = function(samples.muts,
                 red.sample.consigts.defn <- rem.sample.consigts.defn[,colnames(rem.sample.consigts.defn)!=c,drop=FALSE]
                 red.alpha <- em_signatures(sigts.defn=red.sample.consigts.defn,mut.freqs=sample.mut.freqs,max.iter=max.em.iter,dbg=dbg)
                 red.reconstructed <- red.sample.consigts.defn %*% red.alpha * sum(sample.mut.freqs)
-                red.cos.sim.meas <- cos_sim_matrix(red.reconstructed, matrix(sample.mut.freqs, ncol=1))
+                red.cos.sim.meas <- MutationalPatterns::cos_sim_matrix(red.reconstructed, matrix(sample.mut.freqs, ncol=1))
                 cosReduction <- c(cosReduction, sample.cos.sim.meas-red.cos.sim.meas)
                 }
             names(cosReduction) <- rem.names
