@@ -126,7 +126,7 @@ mm_fit_signatures = function(muts.input,
         # Point estimates
         sig_est <- sigfit$weights
         sig_est$sample <- row.names(sig_est)
-        sig_est <- melt(sig_est[names(sig_est) != "mutations"], 
+        sig_est <- reshape2::melt(sig_est[names(sig_est) != "mutations"], 
                         id.vars = "sample", 
                         variable.name = 'signature', 
                         value.name = 'estimate')
